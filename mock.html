@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>flow.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+/* ─── RESET ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+
+/* ─── TOKENS ─────────────────────────────────────────────────── */
+:root {
+  --ob:      #080B10;
+  --void:    #0C1018;
+  --s1:      #111620;
+  --s2:      #18202E;
+  --s3:      #1E2840;
+  --rim:     rgba(200, 220, 255, 0.07);
+  --rim2:    rgba(201, 168, 76, 0.18);
+  --gold:    #C9A84C;
+  --golds:   #E8C97A;
+  --goldm:   rgba(201, 168, 76, 0.10);
+  --text:    #EEF2F8;
+  --t2:      #8A96A8;
+  --t3:      #3E4A5C;
+  --teal:    #31e6ce;
+  --rose:    #F87171;
+  --sage:    #86EFAC;
+  --spotify: #1DB954;
+  --serif:   'Instrument Serif', Georgia, serif;
+  --sans:    'Inter', system-ui, sans-serif;
+  --mono:    'JetBrains Mono', monospace;
+  --ease:    cubic-bezier(.4, 0, .2, 1);
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--ob);
+  color: var(--text);
+  display: grid;
+  grid-template-columns: 200px 1fr 276px;
+  height: 100vh;
+}
+
+/* grain overlay */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 9999; opacity: .018;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════════════════════ */
+.sidebar {
+  background: var(--void);
+  border-right: 1px solid var(--rim);
+  display: flex; flex-direction: column;
+  padding: 1.75rem 1rem 1.5rem;
+  overflow: hidden;
+}
+
+.logo {
+  font-family: var(--serif); font-style: italic;
+  font-size: 1.55rem; letter-spacing: -.04em;
+  color: var(--text);
+  padding: 0 .25rem .1rem;
+  margin-bottom: 2.25rem;
+  display: inline-block; position: relative;
+}
+.logo::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; width: 100%; height: 1px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+.logo b { color: var(--gold); font-style: normal; font-weight: 400; }
+
+.nav-sect {
+  font-size: .6rem; font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--t3); padding: 0 .5rem .5rem; margin-bottom: .1rem;
+}
+.nav-group { margin-bottom: 1.5rem; }
+
+.nav-item {
+  display: flex; align-items: center; gap: .55rem;
+  width: 100%; padding: .52rem .6rem;
+  background: none; border: none; color: var(--t2);
+  font-family: var(--sans); font-size: .78rem; font-weight: 400;
+  border-radius: 7px; cursor: pointer; text-align: left;
+  transition: color .16s var(--ease), background .16s var(--ease);
+  position: relative;
+}
+.nav-item:hover  { color: var(--text); background: var(--rim); }
+.nav-item.active { color: var(--gold); background: var(--goldm); }
+.nav-item.active::before {
+  content: '';
+  position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 2px; height: 55%; border-radius: 2px; background: var(--gold);
+}
+.nav-item svg { flex-shrink: 0; opacity: .7; }
+.nav-item.active svg { opacity: 1; }
+.nav-dot { margin-left: auto; width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
+
+.sidebar-foot {
+  margin-top: auto;
+  border-top: 1px solid var(--rim);
+  padding-top: 1.25rem;
+}
+.streak { display: flex; align-items: center; gap: .8rem; padding: .5rem .5rem; }
+.streak-fire { font-size: 1.4rem; line-height: 1; }
+.streak-num {
+  font-family: var(--serif); font-style: italic;
+  font-size: 1.6rem; color: var(--gold); line-height: 1;
+}
+.streak-lbl { font-size: .65rem; color: var(--t3); margin-top: .1rem; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN
+═══════════════════════════════════════════════════════════════ */
+.main {
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--rim);
+}
+
+/* topbar */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.5rem 2rem 1.25rem;
+  border-bottom: 1px solid var(--rim);
+  flex-shrink: 0;
+}
+.top-date { font-size: .7rem; color: var(--t3); letter-spacing: .04em; margin-bottom: .3rem; }
+.top-greet {
+  font-family: var(--serif); font-style: italic;
+  font-size: 1.65rem; letter-spacing: -.025em; line-height: 1.1;
+}
+.top-greet em {
+  font-style: normal;
+  background: linear-gradient(120deg, var(--gold), var(--golds));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.topbar-r { display: flex; align-items: center; gap: .7rem; }
+
+.score-pill {
+  display: flex; align-items: center; gap: .4rem;
+  padding: .35rem .8rem;
+  background: var(--goldm); border: 1px solid var(--rim2);
+  border-radius: 20px; font-size: .73rem; font-weight: 500; color: var(--gold);
+}
+.score-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
+
+.add-btn {
+  display: flex; align-items: center; gap: .4rem;
+  padding: .42rem .95rem;
+  background: var(--gold); border: none; border-radius: 8px;
+  color: #080B10; font-family: var(--sans); font-size: .76rem; font-weight: 600;
+  cursor: pointer; letter-spacing: .01em;
+  box-shadow: 0 2px 14px rgba(201,168,76,.22);
+  transition: all .16s var(--ease);
+}
+.add-btn:hover { background: var(--golds); transform: translateY(-1px); }
+.add-btn:active { transform: translateY(0); }
+
+/* content scroll */
+.content {
+  flex: 1; overflow-y: auto;
+  padding: 1.625rem 2rem 2.5rem;
+  display: flex; flex-direction: column; gap: 1.25rem;
+}
+.content::-webkit-scrollbar { width: 3px; }
+.content::-webkit-scrollbar-thumb { background: var(--s3); border-radius: 3px; }
+
+/* ── stats ── */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .875rem; }
+
+.stat {
+  background: var(--s1); border: 1px solid var(--rim);
+  border-radius: 12px; padding: 1rem 1.125rem;
+  position: relative; overflow: hidden;
+  transition: border-color .2s var(--ease);
+}
+.stat:hover { border-color: rgba(201,168,76,.18); }
+.stat::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0; transition: opacity .25s;
+}
+.stat:hover::before { opacity: .35; }
+.stat-label {
+  font-size: .63rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--t3); margin-bottom: .6rem;
+}
+.stat-val {
+  font-family: var(--serif); font-style: italic;
+  font-size: 2rem; line-height: 1; color: var(--text);
+}
+.stat-val sub { font-size: .95rem; font-style: normal; color: var(--t2); }
+.stat-delta { font-size: .68rem; margin-top: .45rem; color: var(--t3); }
+.up { color: var(--sage); }
+
+/* ── timer ── */
+.timer-card {
+  background: var(--s1); border: 1px solid var(--rim);
+  border-radius: 16px; padding: 1.5rem 1.75rem;
+  display: flex; align-items: center; gap: 2rem;
+}
+
+.ring-wrap { position: relative; width: 124px; height: 124px; flex-shrink: 0; }
+.ring-wrap svg { transform: rotate(-90deg); }
+.r-bg  { fill: none; stroke: var(--s3); stroke-width: 5; }
+.r-fg  {
+  fill: none; stroke-width: 5; stroke-linecap: round;
+  stroke-dasharray: 351; stroke-dashoffset: 0;
+}
+.ring-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.ring-digits {
+  font-family: var(--mono); font-size: 1.7rem; font-weight: 500;
+  color: var(--text); line-height: 1; letter-spacing: -.02em;
+}
+.ring-phase {
+  font-size: .58rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--gold); margin-top: .25rem;
+}
+
+.timer-body { flex: 1; }
+.timer-title { font-family: var(--serif); font-style: italic; font-size: 1.15rem; color: var(--text); margin-bottom: .25rem; }
+.timer-hint  { font-size: .74rem; color: var(--t2); margin-bottom: 1.1rem; }
+.timer-btns  { display: flex; align-items: center; gap: .55rem; }
+
+.t-play {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--gold); border: none; color: #080B10;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 0 22px rgba(201,168,76,.28);
+  transition: all .16s var(--ease);
+}
+.t-play:hover { background: var(--golds); transform: scale(1.07); }
+
+.t-ghost {
+  width: 34px; height: 34px; border-radius: 8px;
+  background: var(--s2); border: 1px solid var(--rim); color: var(--t2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .16s;
+}
+.t-ghost:hover { color: var(--text); border-color: rgba(200,220,255,.15); }
+
+.pips { display: flex; gap: .35rem; margin-top: 1rem; }
+.pip {
+  width: 22px; height: 3px; border-radius: 2px;
+  background: var(--s3);
+}
+.pip.done { background: linear-gradient(90deg, var(--gold), var(--golds)); }
+.pip.active { background: var(--gold); opacity: .55; }
+
+/* ── two col ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: .875rem; }
+
+/* ── panel ── */
+.panel {
+  background: var(--s1); border: 1px solid var(--rim);
+  border-radius: 14px; padding: 1.25rem;
+}
+.panel-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.panel-title {
+  font-size: .72rem; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--t2);
+}
+.panel-badge {
+  font-family: var(--mono); font-size: .68rem; color: var(--gold);
+  padding: .15rem .45rem; background: var(--goldm);
+  border: 1px solid var(--rim2); border-radius: 4px;
+}
+
+/* task items */
+.task {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .58rem 0; border-bottom: 1px solid var(--rim);
+}
+.task:last-child { border-bottom: none; }
+
+.chk {
+  width: 16px; height: 16px; flex-shrink: 0; border-radius: 4px;
+  border: 1.5px solid var(--t3);
+  display: flex; align-items: center; justify-content: center;
+}
+.chk.done { background: var(--sage); border-color: var(--sage); }
+
+.task-t { font-size: .81rem; flex: 1; color: var(--text); }
+.task-t.done { text-decoration: line-through; color: var(--t3); }
+
+.ttag { font-family: var(--mono); font-size: .62rem; padding: .14rem .42rem; border-radius: 3px; }
+.tw { color: #7C9CF5; background: rgba(124,156,245,.1); }
+.tp { color: var(--rose); background: rgba(248,113,113,.1); }
+.tu { color: var(--gold); background: var(--goldm); border: 1px solid var(--rim2); }
+
+.tdel {
+  background: none; border: none; color: var(--t3); cursor: pointer;
+  display: flex; padding: .1rem; transition: color .14s; margin-left: .15rem;
+}
+.tdel:hover { color: var(--rose); }
+
+/* task empty state */
+.task-empty {
+  padding: 2rem 0; text-align: center;
+  font-size: .78rem; color: var(--t3); line-height: 1.8;
+}
+.task-empty span { display: block; font-size: 1.5rem; margin-bottom: .5rem; opacity: .4; }
+
+/* quick add */
+.qadd { display: flex; gap: .45rem; margin-top: .85rem; }
+.qinp {
+  flex: 1; background: var(--s2); border: 1px solid var(--rim);
+  border-radius: 7px; color: var(--text); padding: .46rem .7rem;
+  font-family: var(--sans); font-size: .79rem; outline: none;
+  transition: border .16s;
+}
+.qinp:focus { border-color: rgba(201,168,76,.35); }
+.qinp::placeholder { color: var(--t3); }
+.qadd-btn {
+  width: 32px; height: 32px; background: var(--goldm);
+  border: 1px solid var(--rim2); border-radius: 7px;
+  color: var(--gold); font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: all .16s;
+}
+.qadd-btn:hover { background: var(--gold); color: #080B10; }
+
+/* log */
+.log-wrap { max-height: 222px; overflow-y: auto; }
+.log-wrap::-webkit-scrollbar { width: 2px; }
+.log-wrap::-webkit-scrollbar-thumb { background: var(--s3); }
+
+.log-empty {
+  padding: 2rem 0; text-align: center;
+  font-size: .76rem; color: var(--t3); line-height: 1.9;
+}
+.log-empty span { display: block; font-size: 1.4rem; margin-bottom: .4rem; opacity: .35; }
+
+.lr {
+  display: flex; align-items: flex-start; gap: .6rem;
+  padding: .46rem 0; border-bottom: 1px solid rgba(200,220,255,.03);
+}
+.lr:last-child { border-bottom: none; }
+.ltime { font-family: var(--mono); font-size: .66rem; color: var(--t3); min-width: 36px; margin-top: .12rem; }
+.ldot  { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: .4rem; background: var(--gold); opacity: .45; }
+.ldot.g { background: var(--sage); opacity: .65; }
+.ldot.r { background: var(--rose); opacity: .65; }
+.ltxt  { font-size: .76rem; color: var(--t2); line-height: 1.5; }
+
+/* note */
+.note-ta {
+  width: 100%; background: transparent; border: none;
+  color: var(--t2); font-family: var(--sans); font-size: .79rem;
+  line-height: 1.75; resize: none; outline: none;
+}
+.note-ta::placeholder { color: var(--t3); }
+.note-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: .75rem; padding-top: .75rem;
+  border-top: 1px solid var(--rim);
+  font-size: .63rem; color: var(--t3);
+}
+.note-clr {
+  background: none; border: 1px solid var(--rim); color: var(--t3);
+  border-radius: 5px; padding: .22rem .55rem;
+  font-family: var(--sans); font-size: .66rem; cursor: pointer;
+  transition: all .15s;
+}
+.note-clr:hover { color: var(--text); border-color: rgba(200,220,255,.15); }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   RIGHT RAIL
+═══════════════════════════════════════════════════════════════ */
+.rail { background: var(--void); display: flex; flex-direction: column; overflow: hidden; }
+.rail-scroll {
+  flex: 1; overflow-y: auto;
+  padding: 1.625rem 1.375rem 2rem;
+  display: flex; flex-direction: column; gap: 1.25rem;
+}
+.rail-scroll::-webkit-scrollbar { width: 2px; }
+.rail-scroll::-webkit-scrollbar-thumb { background: var(--s3); }
+
+/* ── arc card ── */
+.arc-card {
+  background: var(--s1); border: 1px solid var(--rim);
+  border-radius: 14px; padding: 1.375rem;
+  display: flex; flex-direction: column; align-items: center;
+  position: relative; overflow: hidden;
+}
+.arc-card::before {
+  content: '';
+  position: absolute; top: -50px; left: 50%; transform: translateX(-50%);
+  width: 180px; height: 180px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,168,76,.07) 0%, transparent 65%);
+  pointer-events: none;
+}
+.arc-ey {
+  font-size: .6rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--t3); align-self: flex-start; margin-bottom: 1rem;
+}
+.arc-svg { position: relative; width: 140px; height: 82px; overflow: hidden; }
+.arc-svg svg { position: absolute; top: 0; left: 0; }
+.arc-lbl {
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  text-align: center; white-space: nowrap;
+}
+.arc-num { font-family: var(--serif); font-style: italic; font-size: 2rem; line-height: 1; color: var(--text); }
+.arc-sub { font-size: .62rem; color: var(--t3); }
+
+.arc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; width: 100%; margin-top: 1rem; }
+.ag { background: var(--s2); border: 1px solid var(--rim); border-radius: 8px; padding: .55rem .65rem; }
+.ag-l { font-size: .61rem; color: var(--t3); }
+.ag-v { font-family: var(--mono); font-size: .85rem; font-weight: 500; color: var(--text); margin-top: .12rem; }
+
+/* ── spotify card ── */
+.sp { background: var(--s1); border: 1px solid var(--rim); border-radius: 14px; overflow: hidden; }
+
+.sp-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.125rem .8rem; border-bottom: 1px solid var(--rim);
+}
+.sp-brand { display: flex; align-items: center; gap: .45rem; font-size: .75rem; font-weight: 500; color: var(--t2); }
+.sp-ico {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--spotify);
+  display: flex; align-items: center; justify-content: center;
+}
+.sp-connect-btn {
+  padding: .3rem .7rem; border-radius: 20px;
+  background: var(--spotify); border: none;
+  font-family: var(--sans); font-size: .68rem; font-weight: 600;
+  color: #000; cursor: pointer; transition: opacity .15s;
+}
+.sp-connect-btn:hover { opacity: .85; }
+
+/* now playing empty */
+.sp-empty {
+  padding: 2rem 1.125rem;
+  display: flex; flex-direction: column; align-items: center; gap: .6rem;
+  text-align: center;
+}
+.sp-empty-icon { font-size: 2rem; opacity: .25; }
+.sp-empty-text { font-size: .76rem; color: var(--t3); line-height: 1.7; }
+
+/* now playing filled */
+.sp-now {
+  display: flex; align-items: center; gap: .8rem;
+  padding: .85rem 1.125rem .75rem;
+}
+.sp-art {
+  width: 46px; height: 46px; border-radius: 8px; flex-shrink: 0;
+  background: var(--s3);
+  display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
+  position: relative; overflow: hidden;
+}
+.sp-vinyl {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(from 0deg, #090909 0%, #181818 20%, #090909 40%, #181818 60%, #090909 80%, #181818 100%);
+  opacity: 0; transition: opacity .35s;
+}
+.sp-vinyl.spin { opacity: 1; animation: v-spin 3.5s linear infinite; }
+@keyframes v-spin { to { transform: rotate(360deg); } }
+.sp-emoji { position: relative; z-index: 1; }
+.sp-info  { flex: 1; min-width: 0; }
+.sp-track {
+  font-size: .82rem; font-weight: 500; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sp-artist { font-size: .7rem; color: var(--t2); margin-top: .1rem; }
+
+.sp-prog { padding: 0 1.125rem .65rem; }
+.sp-bar  { height: 2px; background: var(--s3); border-radius: 2px; overflow: hidden; cursor: pointer; margin-bottom: .38rem; }
+.sp-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--gold), var(--golds)); width: 0%; }
+.sp-times {
+  display: flex; justify-content: space-between;
+  font-family: var(--mono); font-size: .62rem; color: var(--t3);
+}
+
+.sp-ctrls {
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  padding: .25rem 1.125rem .85rem;
+}
+.sp-btn { background: none; border: none; color: var(--t3); cursor: pointer; display: flex; transition: color .14s; padding: .2rem; }
+.sp-btn:hover { color: var(--text); }
+.sp-play {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--golds));
+  border: none; display: flex; align-items: center; justify-content: center;
+  color: #080B10; cursor: pointer;
+  box-shadow: 0 2px 14px rgba(201,168,76,.28);
+  transition: all .16s;
+}
+.sp-play:hover { transform: scale(1.08); }
+
+/* mood vibes */
+.sp-mood { padding: .65rem 1.125rem .9rem; border-top: 1px solid var(--rim); }
+.mood-lbl {
+  font-size: .59rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--t3); margin-bottom: .55rem;
+}
+.mood-chips { display: flex; gap: .35rem; flex-wrap: wrap; }
+.mc {
+  font-size: .69rem; padding: .26rem .6rem; border-radius: 20px;
+  background: var(--s2); border: 1px solid var(--rim); color: var(--t2);
+  cursor: pointer; transition: all .16s;
+}
+.mc:hover { color: var(--text); border-color: rgba(200,220,255,.14); }
+.mc.active {
+  background: rgba(29,185,84,.1);
+  border-color: rgba(29,185,84,.28);
+  color: var(--spotify);
+}
+
+/* queue */
+.sp-q-hd {
+  padding: .5rem 1.125rem .4rem;
+  font-size: .59rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--t3); border-top: 1px solid var(--rim);
+}
+.sp-queue { padding-bottom: .5rem; }
+
+.qi {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .42rem 1.125rem; cursor: pointer; transition: background .13s;
+}
+.qi:hover { background: var(--rim); }
+.qi.now   { background: rgba(201,168,76,.05); }
+.qi-art   {
+  width: 30px; height: 30px; border-radius: 5px;
+  background: var(--s3); font-size: .8rem;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.qi-meta  { flex: 1; min-width: 0; }
+.qi-name  { font-size: .76rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qi-artist { font-size: .67rem; color: var(--t3); }
+.qi-dur   { font-family: var(--mono); font-size: .66rem; color: var(--t3); }
+
+.eq  { display: flex; align-items: flex-end; gap: 1.5px; height: 11px; margin-right: .3rem; }
+.eqb { width: 2.5px; border-radius: 1px; background: var(--gold); animation: eq .42s ease-in-out infinite alternate; }
+.eqb:nth-child(2) { animation-delay: .13s; }
+.eqb:nth-child(3) { animation-delay: .26s; }
+@keyframes eq { from { height: 2px; } to { height: 9px; } }
+
+/* queue empty */
+.qi-empty {
+  padding: 1rem 1.125rem;
+  font-size: .73rem; color: var(--t3); text-align: center;
+}
+
+/* ── habits ── */
+.hab { background: var(--s1); border: 1px solid var(--rim); border-radius: 14px; padding: 1.25rem; }
+
+.hb {
+  display: flex; align-items: center; gap: .45rem;
+  padding: .46rem 0; border-bottom: 1px solid var(--rim);
+}
+.hb:last-child { border-bottom: none; }
+.hb-name { font-size: .77rem; color: var(--t2); flex: 1; }
+.hb-days { display: flex; gap: .25rem; }
+
+.hd {
+  width: 21px; height: 21px; border-radius: 5px;
+  background: var(--s2); border: none;
+  font-family: var(--mono); font-size: .57rem; color: var(--t3);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .16s;
+}
+.hd:hover { background: var(--s3); color: var(--t2); }
+.hd.done  { background: linear-gradient(135deg, var(--gold), var(--golds)); color: #080B10; font-weight: 600; }
+.hd.today { outline: 1px solid var(--gold); outline-offset: 1px; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════════════════════ */
+.overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(5,8,14,.88); backdrop-filter: blur(7px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s var(--ease);
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--s1); border: 1px solid rgba(200,220,255,.1);
+  border-radius: 16px; padding: 2rem; width: 400px;
+  transform: translateY(18px) scale(.98);
+  transition: transform .2s var(--ease);
+  box-shadow: 0 24px 60px rgba(0,0,0,.55);
+}
+.overlay.open .modal { transform: none; }
+.modal-title {
+  font-family: var(--serif); font-style: italic;
+  font-size: 1.35rem; color: var(--text); margin-bottom: 1.5rem;
+}
+.field { margin-bottom: 1.1rem; }
+.field label {
+  display: block; font-size: .67rem; font-weight: 600;
+  letter-spacing: .07em; text-transform: uppercase;
+  color: var(--t3); margin-bottom: .38rem;
+}
+.field input, .field select {
+  width: 100%; background: var(--s2); border: 1px solid var(--rim);
+  border-radius: 8px; color: var(--text); padding: .58rem .8rem;
+  font-family: var(--sans); font-size: .82rem; outline: none;
+  transition: border .16s;
+}
+.field input:focus, .field select:focus { border-color: rgba(201,168,76,.38); }
+.field input::placeholder { color: var(--t3); }
+.field select option { background: var(--s1); }
+.mact { display: flex; gap: .55rem; margin-top: 1.5rem; }
+.m-cancel {
+  flex: 1; background: var(--s2); border: 1px solid var(--rim); color: var(--t2);
+  border-radius: 8px; padding: .6rem; font-family: var(--sans); font-size: .8rem; cursor: pointer;
+  transition: all .15s;
+}
+.m-cancel:hover { color: var(--text); }
+.m-save {
+  flex: 1; background: var(--gold); border: none; color: #080B10;
+  border-radius: 8px; padding: .6rem; font-family: var(--sans); font-size: .8rem;
+  font-weight: 600; cursor: pointer; transition: all .15s;
+}
+.m-save:hover { background: var(--golds); }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════════════ */
+.toast {
+  position: fixed; bottom: 1.75rem; right: 1.75rem; z-index: 600;
+  background: var(--s2); border: 1px solid var(--rim); border-left: 2px solid var(--gold);
+  border-radius: 8px; padding: .6rem .95rem;
+  font-size: .77rem; color: var(--t2);
+  transform: translateY(14px); opacity: 0; pointer-events: none;
+  transition: all .22s var(--ease);
+  box-shadow: 0 8px 28px rgba(0,0,0,.38);
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ════════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="logo">flow<b>.</b></div>
+
+  <div class="nav-group">
+    <div class="nav-sect">Workspace</div>
+    <button class="nav-item active">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <rect x="1" y="1" width="5" height="5" rx="1.2" stroke="currentColor" stroke-width="1.3"/>
+        <rect x="8" y="1" width="5" height="5" rx="1.2" stroke="currentColor" stroke-width="1.3"/>
+        <rect x="1" y="8" width="5" height="5" rx="1.2" stroke="currentColor" stroke-width="1.3"/>
+        <rect x="8" y="8" width="5" height="5" rx="1.2" stroke="currentColor" stroke-width="1.3"/>
+      </svg>
+      Dashboard
+      <span class="nav-dot"></span>
+    </button>
+    <button class="nav-item">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M2 3.5h10M2 7h7M2 10.5h9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+      Tasks
+    </button>
+    <button class="nav-item">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/>
+        <path d="M7 4.5V7.2l2 1.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+      Focus
+    </button>
+    <button class="nav-item">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M7 1.5l1.4 3h3.1l-2.5 1.9.95 3L7 7.7l-2.95 1.7.95-3L2.5 4.5h3.1L7 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+      </svg>
+      Habits
+    </button>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-sect">Reports</div>
+    <button class="nav-item">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M1.5 11L5 7l3 3 4.5-5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Analytics
+    </button>
+    <button class="nav-item">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <rect x="1.5" y="2.5" width="11" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+        <path d="M1.5 5.5h11" stroke="currentColor" stroke-width="1.3"/>
+      </svg>
+      Weekly
+    </button>
+  </div>
+
+  <div class="sidebar-foot">
+    <div class="streak">
+      <div class="streak-fire">🔥</div>
+      <div>
+        <div class="streak-num">—</div>
+        <div class="streak-lbl">day streak</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+
+<!-- ═══ MAIN ════════════════════════════════════════════════════ -->
+<main class="main">
+
+  <div class="topbar">
+    <div>
+      <div class="top-date">Monday, January 1 · 2025</div>
+      <div class="top-greet">Good morning, <em>let's make it count.</em></div>
+    </div>
+    <div class="topbar-r">
+      <div class="score-pill">
+        <div class="score-dot"></div>
+        Score <span>—</span>
+      </div>
+      <button class="add-btn">
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+          <path d="M5.5 1v9M1 5.5h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        New task
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- stats -->
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Tasks done</div>
+        <div class="stat-val">— <sub>/ —</sub></div>
+        <div class="stat-delta">No tasks yet</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Focus time</div>
+        <div class="stat-val">0h <sub>0m</sub></div>
+        <div class="stat-delta up">Start a session to track</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Sessions</div>
+        <div class="stat-val">0 <sub>/ 4</sub></div>
+        <div class="stat-delta">Next: 25-min focus block</div>
+      </div>
+    </div>
+
+    <!-- timer -->
+    <div class="timer-card">
+      <div class="ring-wrap">
+        <svg width="124" height="124" viewBox="0 0 124 124">
+          <defs>
+            <linearGradient id="ggrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#C9A84C"/>
+              <stop offset="100%" stop-color="#E8C97A"/>
+            </linearGradient>
+          </defs>
+          <circle class="r-bg" cx="62" cy="62" r="56"/>
+          <circle class="r-fg" cx="62" cy="62" r="56"
+            stroke="url(#ggrad)"
+            style="filter: drop-shadow(0 0 5px rgba(201,168,76,.45)); stroke-dashoffset: 351;"/>
+        </svg>
+        <div class="ring-center">
+          <div class="ring-digits">25:00</div>
+          <div class="ring-phase">FOCUS</div>
+        </div>
+      </div>
+
+      <div class="timer-body">
+        <div class="timer-title">Deep work session</div>
+        <div class="timer-hint">Clear your most important task first.</div>
+        <div class="timer-btns">
+          <button class="t-play">
+            <!-- play icon -->
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 3.5l8 4.5-8 4.5z"/></svg>
+          </button>
+          <button class="t-ghost" title="Reset">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 6.5A5 5 0 106 2H4m0 0L2 0m2 2L2 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </button>
+          <button class="t-ghost" title="Skip">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 2.5l6 4-6 4V2.5zm6 0v8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="pips">
+          <div class="pip"></div>
+          <div class="pip"></div>
+          <div class="pip"></div>
+          <div class="pip"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- tasks + log -->
+    <div class="two-col">
+
+      <div class="panel">
+        <div class="panel-hd">
+          <div class="panel-title">Today's tasks</div>
+          <div class="panel-badge" id="task-badge">0</div>
+        </div>
+
+        <!-- empty state — remove when tasks exist -->
+        <div class="task-empty" id="task-empty">
+          <span>✓</span>
+          Nothing here yet.<br>Add your first task above.
+        </div>
+
+        <!-- task list — populated by JS -->
+        <div id="task-list"></div>
+
+        <div class="qadd">
+          <input class="qinp" placeholder="Add a task…" id="task-input"/>
+          <button class="qadd-btn" id="task-add-btn">+</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-hd">
+          <div class="panel-title">Activity</div>
+        </div>
+
+        <!-- empty state -->
+        <div class="log-empty" id="log-empty">
+          <span>⏱</span>
+          Activity will appear here<br>as you work through the day.
+        </div>
+
+        <!-- log list — populated by JS -->
+        <div class="log-wrap" id="log-list"></div>
+      </div>
+
+    </div>
+
+    <!-- note -->
+    <div class="panel">
+      <div class="panel-hd">
+        <div class="panel-title">Quick capture</div>
+      </div>
+      <textarea class="note-ta" id="note-area" rows="3"
+        placeholder="Ideas, blockers, thoughts…"></textarea>
+      <div class="note-foot">
+        <span>auto-saved</span>
+        <button class="note-clr" id="note-clear">Clear</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+
+<!-- ═══ RIGHT RAIL ════════════════════════════════════════════ -->
+<aside class="rail">
+  <div class="rail-scroll">
+
+    <!-- productivity arc -->
+    <div class="arc-card">
+      <div class="arc-ey">Today's output</div>
+      <div class="arc-svg">
+        <svg width="140" height="82" viewBox="0 0 140 82">
+          <defs>
+            <linearGradient id="agrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#C9A84C" stop-opacity=".35"/>
+              <stop offset="100%" stop-color="#E8C97A"/>
+            </linearGradient>
+            <filter id="aglow">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- track -->
+          <path d="M14,78 A56,56 0 0,1 126,78"
+            fill="none" stroke="#1E2840" stroke-width="7" stroke-linecap="round"/>
+          <!-- fill — set stroke-dashoffset via JS (0 = full, 176 = empty) -->
+          <path id="arc-path"
+            d="M14,78 A56,56 0 0,1 126,78"
+            fill="none" stroke="url(#agrad)" stroke-width="7" stroke-linecap="round"
+            stroke-dasharray="176" stroke-dashoffset="176"
+            filter="url(#aglow)"/>
+        </svg>
+        <div class="arc-lbl">
+          <div class="arc-num" id="arc-score">—</div>
+          <div class="arc-sub">score</div>
+        </div>
+      </div>
+      <div class="arc-grid">
+        <div class="ag">
+          <div class="ag-l">Focus</div>
+          <div class="ag-v" id="ag-focus">0h 0m</div>
+        </div>
+        <div class="ag">
+          <div class="ag-l">Tasks</div>
+          <div class="ag-v" id="ag-tasks">— / —</div>
+        </div>
+        <div class="ag">
+          <div class="ag-l">Streak</div>
+          <div class="ag-v" id="ag-streak">—</div>
+        </div>
+        <div class="ag">
+          <div class="ag-l">Sessions</div>
+          <div class="ag-v" id="ag-sessions">0 / 4</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- spotify -->
+    <div class="sp">
+      <div class="sp-hd">
+        <div class="sp-brand">
+          <div class="sp-ico">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="white">
+              <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.623.623 0 01-.857.207c-2.348-1.435-5.304-1.759-8.785-.964a.623.623 0 11-.277-1.215c3.809-.87 7.076-.495 9.713 1.115.294.18.387.563.206.857zm1.223-2.722a.78.78 0 01-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 01-.973-.519.781.781 0 01.518-.974c3.632-1.102 8.147-.568 11.234 1.329a.78.78 0 01.258 1.073zm.105-2.835c-3.223-1.914-8.54-2.09-11.618-1.156a.935.935 0 11-.543-1.79c3.532-1.072 9.404-.865 13.115 1.338a.936.936 0 01-1.954 1.608z"/>
+            </svg>
+          </div>
+          Spotify
+        </div>
+        <button class="sp-connect-btn" id="sp-connect">Connect</button>
+      </div>
+
+      <!-- disconnected empty state -->
+      <div class="sp-empty" id="sp-empty">
+        <div class="sp-empty-icon">🎵</div>
+        <div class="sp-empty-text">
+          Connect Spotify to see<br>what's playing and control<br>your music from here.
+        </div>
+      </div>
+
+      <!-- now playing — hidden until connected, shown by JS -->
+      <div id="sp-player" style="display:none;">
+        <div class="sp-now">
+          <div class="sp-art">
+            <div class="sp-vinyl" id="sp-vinyl"></div>
+            <span class="sp-emoji" id="sp-emoji">🎵</span>
+          </div>
+          <div class="sp-info">
+            <div class="sp-track"  id="sp-track">—</div>
+            <div class="sp-artist" id="sp-artist">—</div>
+          </div>
+        </div>
+        <div class="sp-prog">
+          <div class="sp-bar" id="sp-bar">
+            <div class="sp-fill" id="sp-fill"></div>
+          </div>
+          <div class="sp-times">
+            <span id="sp-cur">0:00</span>
+            <span id="sp-tot">0:00</span>
+          </div>
+        </div>
+        <div class="sp-ctrls">
+          <button class="sp-btn" id="sp-prev">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M3 3h1.5v4.2l7-4.2v10l-7-4.2V13H3z"/></svg>
+          </button>
+          <button class="sp-play" id="sp-play-btn">
+            <svg id="sp-play-icon" width="13" height="13" viewBox="0 0 13 13" fill="currentColor">
+              <path d="M2.5 2l9 5-9 5V2z"/>
+            </svg>
+          </button>
+          <button class="sp-btn" id="sp-next">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M13 3h-1.5v4.2l-7-4.2v10l7-4.2V13H13z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="sp-mood">
+        <div class="mood-lbl">Vibe</div>
+        <div class="mood-chips">
+          <div class="mc active" data-mood="deep">🧠 Deep</div>
+          <div class="mc" data-mood="energy">⚡ Energy</div>
+          <div class="mc" data-mood="chill">😌 Chill</div>
+          <div class="mc" data-mood="flow">🌊 Flow</div>
+        </div>
+      </div>
+
+      <div class="sp-q-hd">Up next</div>
+      <div class="sp-queue" id="sp-queue">
+        <div class="qi-empty">Queue will appear once connected.</div>
+      </div>
+    </div>
+
+    <!-- habits -->
+    <div class="hab">
+      <div class="panel-hd">
+        <div class="panel-title">Habits</div>
+        <span style="font-size:.62rem; color:var(--t3)">Mon–Sun</span>
+      </div>
+
+      <!-- habit rows — populated by JS -->
+      <!-- example structure for reference:
+      <div class="hb">
+        <span class="hb-name">🧘 Meditate</span>
+        <div class="hb-days">
+          <button class="hd done">M</button>
+          <button class="hd">T</button>
+          <button class="hd today">W</button>
+          <button class="hd">T</button>
+          <button class="hd">F</button>
+          <button class="hd">S</button>
+          <button class="hd">S</button>
+        </div>
+      </div>
+      -->
+      <div id="habit-list">
+        <div style="padding: 1.5rem 0; text-align:center; font-size:.76rem; color:var(--t3); line-height:1.9;">
+          No habits yet.<br>Add them to start tracking.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</aside>
+
+
+<!-- ═══ MODAL ════════════════════════════════════════════════════ -->
+<div class="overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">Capture a task</div>
+    <div class="field">
+      <label>What needs doing?</label>
+      <input type="text" id="modal-task-name"
+        placeholder="Specific tasks get done. Vague ones don't."/>
+    </div>
+    <div class="field">
+      <label>Category</label>
+      <select id="modal-tag">
+        <option value="work">Work</option>
+        <option value="personal">Personal</option>
+        <option value="urgent">Urgent</option>
+      </select>
+    </div>
+    <div class="mact">
+      <button class="m-cancel" id="modal-cancel">Cancel</button>
+      <button class="m-save"   id="modal-save">Add task</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ TOAST ════════════════════════════════════════════════════ -->
+<div class="toast" id="toast"><span id="toast-msg"></span></div>
+
+</body>
+</html>
