@@ -14,7 +14,7 @@ html, body { height: 100%; overflow: hidden; }
 
 /* ─── TOKENS ─────────────────────────────────────────────────── */
 :root {
-  --ob:      #080B10;
+  --ob:      #06090e;
   --void:    #0C1018;
   --s1:      #111620;
   --s2:      #18202E;
@@ -430,8 +430,9 @@ body::after {
 .ag-v { font-family: var(--mono); font-size: .85rem; font-weight: 500; color: var(--text); margin-top: .12rem; }
 
 /* ── spotify card ── */
-.sp { background: var(--s1); border: 1px solid var(--rim); border-radius: 14px; overflow: hidden; }
-
+.sp { background: var(--s1); border: 1px solid var(--rim); border-radius: 14px; overflow: scroll; }
+.sp::-webkit-scrollbar { width: 3px; }
+.sp::-webkit-scrollbar-thumb { background: var(--s3); border-radius: 3px; }
 .sp-hd {
   display: flex; align-items: center; justify-content: space-between;
   padding: 1rem 1.125rem .8rem; border-bottom: 1px solid var(--rim);
